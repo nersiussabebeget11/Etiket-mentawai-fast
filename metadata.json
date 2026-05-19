@@ -1,0 +1,6 @@
+{
+  "name": "Mentawai Fast Ticketing",
+  "description": "Sistem informasi pemesanan tiket Mentawai Fast dengan manajemen jadwal, rute, dan pembayaran otomatis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

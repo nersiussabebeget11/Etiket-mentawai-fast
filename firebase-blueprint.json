@@ -1,0 +1,145 @@
+{
+  "entities": {
+    "Ship": {
+      "title": "Ship",
+      "description": "Details of the ferry ships.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "capacity": { "type": "integer" },
+        "status": { "type": "string", "enum": ["active", "maintenance"] }
+      },
+      "required": ["name", "capacity", "status"]
+    },
+    "Route": {
+      "title": "Route",
+      "description": "Travel routes between ports.",
+      "type": "object",
+      "properties": {
+        "origin": { "type": "string" },
+        "destination": { "type": "string" },
+        "basePrice": { "type": "integer" }
+      },
+      "required": ["origin", "destination", "basePrice"]
+    },
+    "Schedule": {
+      "title": "Schedule",
+      "description": "Daily or specific voyage schedules.",
+      "type": "object",
+      "properties": {
+        "shipId": { "type": "string" },
+        "routeId": { "type": "string" },
+        "departureTime": { "type": "string", "format": "date-time" },
+        "arrivalTime": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["scheduled", "cancelled", "delayed"] },
+        "price": { "type": "integer" }
+      },
+      "required": ["shipId", "routeId", "departureTime", "arrivalTime", "status", "price"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "Ticket purchase records.",
+      "type": "object",
+      "properties": {
+        "scheduleId": { "type": "string" },
+        "userId": { "type": "string" },
+        "passengerName": { "type": "string" },
+        "passengerId": { "type": "string" },
+        "passengerEmail": { "type": "string", "format": "email" },
+        "seatNumber": { "type": "string" },
+        "totalPrice": { "type": "integer" },
+        "status": { "type": "string", "enum": ["pending", "paid", "cancelled"] },
+        "paymentId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "confirmedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["scheduleId", "userId", "passengerName", "totalPrice", "status", "createdAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "System users and their roles.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "member"] }
+      },
+      "required": ["name", "email", "role"]
+    },
+    "PaymentSettings": {
+      "title": "PaymentSettings",
+      "description": "Bank account details for payments.",
+      "type": "object",
+      "properties": {
+        "bankName": { "type": "string" },
+        "accountNumber": { "type": "string" },
+        "accountHolder": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["bankName", "accountNumber", "accountHolder"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "User reviews for ships.",
+      "type": "object",
+      "properties": {
+        "shipId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "bookingId": { "type": "string" },
+        "rating": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "comment": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["shipId", "userId", "userName", "bookingId", "rating", "comment", "createdAt"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "A system notification for a user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["payment_confirmed", "booking_cancelled", "announcement"] },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "message", "type", "read", "createdAt"]
+    }
+  },
+  "firestore": {
+    "ships/{shipId}": {
+      "schema": "Ship",
+      "description": "Collection of ships."
+    },
+    "routes/{routeId}": {
+      "schema": "Route",
+      "description": "Collection of routes."
+    },
+    "schedules/{scheduleId}": {
+      "schema": "Schedule",
+      "description": "Collection of voyage schedules."
+    },
+    "bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Collection of ticket bookings."
+    },
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Collection of system users."
+    },
+    "settings/{settingId}": {
+      "schema": "PaymentSettings",
+      "description": "Application settings document."
+    },
+    "reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Ship reviews and ratings."
+    },
+    "notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "User notifications for system events."
+    }
+  }
+}

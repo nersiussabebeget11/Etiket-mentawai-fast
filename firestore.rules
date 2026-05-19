@@ -1,0 +1,189 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isBootstrapAdmin() {
+      return isSignedIn() && 
+             request.auth.token.email == 'leggeu29@gmail.com' && 
+             request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        isBootstrapAdmin() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Entity Validations ---
+    function isValidUser(data) {
+      return data.keys().hasAll(['name', 'email', 'role']) &&
+             data.keys().size() == 3 &&
+             data.name is string && data.name.size() <= 100 &&
+             data.email is string && data.email.size() <= 100 &&
+             data.role in ['admin', 'member'];
+    }
+
+    function isValidShip(data) {
+      return data.keys().hasAll(['name', 'capacity', 'status']) &&
+             data.keys().size() == 3 &&
+             data.name is string && data.name.size() <= 100 &&
+             data.capacity is int && data.capacity > 0 &&
+             data.status in ['active', 'maintenance', 'docking'];
+    }
+
+    function isValidRoute(data) {
+      return data.keys().hasAll(['origin', 'destination', 'basePrice']) &&
+             data.keys().size() == 3 &&
+             data.origin is string && data.origin.size() <= 100 &&
+             data.destination is string && data.destination.size() <= 100 &&
+             data.basePrice is int && data.basePrice >= 0;
+    }
+
+    function isValidSchedule(data) {
+      return data.keys().hasAll(['shipId', 'routeId', 'departureTime', 'arrivalTime', 'status', 'price']) &&
+             (data.keys().size() == 6 || (data.keys().size() == 7 && 'bookedSeats' in data.keys()) || (data.keys().size() == 8 && 'estimatedActiveTime' in data.keys())) &&
+             isValidId(data.shipId) &&
+             isValidId(data.routeId) &&
+             data.departureTime is string &&
+             data.arrivalTime is string &&
+             data.status in ['scheduled', 'cancelled', 'delayed', 'active'] &&
+             data.price is int && data.price >= 0 &&
+             (!('bookedSeats' in data.keys()) || (data.bookedSeats is int && data.bookedSeats >= 0)) &&
+             (!('estimatedActiveTime' in data.keys()) || data.estimatedActiveTime is string);
+    }
+
+    function isValidBooking(data) {
+      return data.keys().hasAll(['scheduleId', 'userId', 'passengerName', 'passengerId', 'seatNumber', 'totalPrice', 'status', 'createdAt']) &&
+             isValidId(data.scheduleId) &&
+             isValidId(data.userId) &&
+             data.passengerName is string && data.passengerName.size() <= 100 &&
+             data.passengerId is string && data.passengerId.size() <= 100 &&
+             (!('passengerEmail' in data.keys()) || (data.passengerEmail is string && (data.passengerEmail == "" || data.passengerEmail.matches('^[^@]+@[^@]+\\.[^@]+$')))) &&
+             data.seatNumber is string && data.seatNumber.size() <= 20 &&
+             (data.totalPrice is int || data.totalPrice is number) &&
+             data.status in ['pending', 'paid', 'cancelled'] &&
+             data.createdAt is string &&
+             (!('paymentMethod' in data.keys()) || (data.paymentMethod in ['bank', 'ewallet', 'ovo', 'gopay'])) &&
+             (!('paymentId' in data.keys()) || (data.paymentId is string && data.paymentId.size() <= 100)) &&
+             (!('confirmedAt' in data.keys()) || data.confirmedAt is string) &&
+             (!('expiresAt' in data.keys()) || data.expiresAt is string) &&
+             (!('passengerCount' in data.keys()) || (data.passengerCount is int && data.passengerCount > 0));
+    }
+
+    function isValidPaymentSettings(data) {
+      return data.keys().hasAll(['bankName', 'accountNumber', 'accountHolder']) &&
+             data.bankName is string && data.bankName.size() <= 100 &&
+             data.accountNumber is string && data.accountNumber.size() <= 50 &&
+             data.accountHolder is string && data.accountHolder.size() <= 100 &&
+             (!('updatedAt' in data.keys()) || data.updatedAt is string);
+    }
+
+    function isValidReview(data) {
+      return data.keys().hasAll(['shipId', 'userId', 'userName', 'bookingId', 'rating', 'comment', 'createdAt']) &&
+             isValidId(data.shipId) &&
+             data.userId == request.auth.uid &&
+             data.userName is string &&
+             isValidId(data.bookingId) &&
+             data.rating is int && data.rating >= 1 && data.rating <= 5 &&
+             data.comment is string && data.comment.size() <= 1000 &&
+             data.createdAt is string;
+    }
+
+    function isValidNotification(data) {
+      return data.keys().hasAll(['userId', 'title', 'message', 'type', 'read', 'createdAt']) &&
+             isValidId(data.userId) &&
+             data.title is string && data.title.size() <= 100 &&
+             data.message is string && data.message.size() <= 1000 &&
+             data.type in ['payment_confirmed', 'booking_cancelled', 'announcement', 'system'] &&
+             data.read is bool &&
+             data.createdAt is string;
+    }
+
+    // --- Collections ---
+    
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isSignedIn() && userId == request.auth.uid && isValidUser(incoming());
+      allow update: if (isOwner(userId) && (incoming().diff(existing()).affectedKeys().hasOnly(['name']) || isBootstrapAdmin())) || isAdmin();
+    }
+
+    match /ships/{shipId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidShip(incoming());
+      allow delete: if isAdmin();
+    }
+
+    match /routes/{routeId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidRoute(incoming());
+      allow delete: if isAdmin();
+    }
+
+    match /schedules/{scheduleId} {
+      allow read: if true;
+      allow update: if (isAdmin() && isValidSchedule(incoming())) ||
+                    (isSignedIn() && incoming().diff(existing()).affectedKeys().hasOnly(['bookedSeats']) && 
+                     incoming().bookedSeats >= 0);
+      allow create: if isAdmin() && isValidSchedule(incoming());
+      allow delete: if isAdmin();
+    }
+
+    match /bookings/{bookingId} {
+      allow read: if (isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()));
+      allow create: if isSignedIn() && request.auth.token.email_verified == true && isValidBooking(incoming()) && incoming().userId == request.auth.uid && incoming().status == 'pending';
+      allow update: if (isAdmin() && isValidBooking(incoming())) || 
+                     (isSignedIn() && request.auth.token.email_verified == true && resource.data.userId == request.auth.uid && isValidBooking(incoming()) && incoming().userId == request.auth.uid && (
+                       (incoming().diff(existing()).affectedKeys().hasOnly(['status']) && incoming().status == 'cancelled' && existing().status == 'pending') ||
+                       (incoming().diff(existing()).affectedKeys().hasOnly(['status', 'paymentId', 'confirmedAt', 'paymentMethod']) && incoming().status == 'paid' && existing().status == 'pending')
+                     ));
+      allow delete: if isAdmin();
+    }
+
+    match /settings/{settingId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidPaymentSettings(incoming());
+      allow delete: if isAdmin();
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidReview(incoming());
+      allow delete, update: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid 
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['read']);
+      allow create: if (isAdmin() && isValidNotification(incoming())) || (isSignedIn() && incoming().userId == request.auth.uid && isValidNotification(incoming()));
+      allow delete: if isAdmin();
+    }
+  }
+}
