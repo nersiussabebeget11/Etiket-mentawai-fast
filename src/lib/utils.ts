@@ -5,6 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function toTitleCase(str: string) {
-  return str.toLowerCase().replace(/(^|\s)\S/g, (L) => L.toUpperCase());
+export function toTitleCase(str: string): string {
+  if (!str) return '';
+  return str.toLowerCase().replace(/(?:^|\s)\w/g, (match) => match.toUpperCase());
 }

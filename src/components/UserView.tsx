@@ -38,21 +38,240 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import { format, parseISO, isBefore } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { id, enUS } from 'date-fns/locale';
 import { cn, toTitleCase } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { handleFirestoreError, OperationType } from '../lib/firebase-errors';
 import { ReviewModal } from './ReviewModal';
 import { ShipReviews } from './ShipReviews';
 import { NotificationCenter } from './NotificationCenter';
+import { BusinessPlanReport } from './BusinessPlanReport';
+
+import { Language, translations } from '../lib/translations';
+
+// @ts-ignore
+import slide1 from '../assets/images/mentawai_fast_1_1779263670466.png';
+// @ts-ignore
+import slide2 from '../assets/images/mentawai_fast_2_1779263686402.png';
+// @ts-ignore
+import slide3 from '../assets/images/mentawai_fast_3_1779263704224.png';
+// @ts-ignore
+import slide4 from '../assets/images/mentawai_fast_4_1779263721871.png';
+// @ts-ignore
+import slide5 from '../assets/images/mentawai_fast_5_1779265532488.png';
+// @ts-ignore
+import slide6 from '../assets/images/mentawai_fast_6_1779265550166.png';
+// @ts-ignore
+import slide7 from '../assets/images/mentawai_fast_7_1779265568768.png';
+// @ts-ignore
+import slide8 from '../assets/images/mentawai_fast_8_1779265587664.png';
+// @ts-ignore
+import slide9 from '../assets/images/mentawai_fast_9_1779265604137.png';
+// @ts-ignore
+import slide10 from '../assets/images/mentawai_fast_10_1779265624749.png';
+// @ts-ignore
+import slide11 from '../assets/images/mentawai_fast_11_1779265643408.png';
+// @ts-ignore
+import slide12 from '../assets/images/mentawai_fast_12_1779265660172.png';
+// @ts-ignore
+import slide13 from '../assets/images/mentawai_fast_13_1779265677772.png';
+// @ts-ignore
+import slide14 from '../assets/images/mentawai_fast_14_1779265697141.png';
+
+const slides = [
+  {
+    image: slide1,
+    id: {
+      title: 'KONEKTIVITAS TERBAIK',
+      subtitle: 'Padang ke Mentawai Lebih Cepat',
+      desc: 'Menghubungkan Padang dan Kepulauan Mentawai dengan kecepatan dan kenyamanan tinggi melalui armada ferry modern berkecepatan tinggi.'
+    },
+    en: {
+      title: 'PREMIER CONNECTIVITY',
+      subtitle: 'Padang to Mentawai is Faster',
+      desc: 'Connecting Padang mainland directly with Mentawai islands using high-speed modern catamaran vessels.'
+    }
+  },
+  {
+    image: slide2,
+    id: {
+      title: 'KEINDAHAN SAMUDERA',
+      subtitle: 'Jelajahi Surga Tropis Dunia',
+      desc: 'Jelajahi keindahan alam Kepulauan Mentawai bersama layanan prioritas terverifikasi kami untuk petualangan selancar legendaris.'
+    },
+    en: {
+      title: 'OCEANIC SPLENDOR',
+      subtitle: 'Explore the World’s Tropical Paradise',
+      desc: 'Navigate the clean pristine waters of Mentawai Islands with our certified priority service for legendary wave trips.'
+    }
+  },
+  {
+    image: slide3,
+    id: {
+      title: 'PROSEDUR PRIORITAS',
+      subtitle: 'Keamanan & Kenyamanan Utama',
+      desc: 'Armada tangguh dirancang khusus dengan sistem navigasi termutakhir untuk menjamin keselamatan dan kepuasan perjalanan Anda.'
+    },
+    en: {
+      title: 'PRIORITY COMPLIANCE',
+      subtitle: 'Safety & Comfort First',
+      desc: 'Robust vessels designed specifically with advanced navigation tools to guarantee complete safety and satisfying transit.'
+    }
+  },
+  {
+    image: slide4,
+    id: {
+      title: 'TROPIS MEWAH',
+      subtitle: 'Surga Selancar & Liburan Dunia',
+      desc: 'Perjalanan cepat yang nyaman menuju ombak kelas dunia, bibir pantai pasir putih bersih, dan resor eksotis di Mentawai.'
+    },
+    en: {
+      title: 'LUXURY TROPICAL ESCAPE',
+      subtitle: 'World-Class Surfing Haven',
+      desc: 'Direct rapid transit towards legendary world-class surf breaks, pristine white sands, and exotic sea resorts.'
+    }
+  },
+  {
+    image: slide5,
+    id: {
+      title: 'KABIN PREMIUM LUAS',
+      subtitle: 'Terbaik Dalam Kenyamanan Perjalanan',
+      desc: 'Nikmati fasilitas kursi empuk ergonomis dan pemandangan samudera memesona di dalam kabin rute Padang - Mentawai.'
+    },
+    en: {
+      title: 'SPACIOUS PREMIUM CABIN',
+      subtitle: 'Ultimate Passenger Transit Comfort',
+      desc: 'Unwind with premium ergonomic leather chairs and stellar landscape windows during your sea voyage.'
+    }
+  },
+  {
+    image: slide6,
+    id: {
+      title: 'DERMAGA PELABUHAN UTAMA',
+      subtitle: 'Proses Boarding Cepat & Teratur',
+      desc: 'Petugas ramah siap membantu memuat peralatan selancar dan barang bawaan Anda langsung dari dermaga port.'
+    },
+    en: {
+      title: 'EXPEDITED DIRECT BOARDING',
+      subtitle: 'Streamlined Pier Departure Protocols',
+      desc: 'Friendly personnel helping secure surfboard bags and premium luggage directly at the harbor quay.'
+    }
+  },
+  {
+    image: slide7,
+    id: {
+      title: 'PELAYANAN ANTAR PULAU',
+      subtitle: 'Jelajahi Gugusan Pulau Eksotis',
+      desc: 'Akses tercepat menuju Siberut, Tua Pejat, Sikakap, dan pulau-pulau legendaris tak terjamah di Kepulauan Mentawai.'
+    },
+    en: {
+      title: 'ARCHIPELAGO ISLAND TRANSIT',
+      subtitle: 'Explore Untouched Tropical Jewels',
+      desc: 'Rapid sailing directly connecting West Sumatra mainland to Siberut, Tua Pejat, Sikakap, and paradise reefs.'
+    }
+  },
+  {
+    image: slide8,
+    id: {
+      title: 'FASILITAS INTERIOR MODERN',
+      subtitle: 'Kebersihan & Sanitasi Terjamin',
+      desc: 'Ruang berpendingin udara (AC) yang sejuk, bersih, dan higienis untuk menyegarkan suasana perjalanan laut Anda.'
+    },
+    en: {
+      title: 'MODERN SHIPSIDE INTERIORS',
+      subtitle: 'Cleanliness & Sanitized Cabins',
+      desc: 'Fully air-conditioned, sanitized, and crisp passenger saloons ensuring complete freshness all the way.'
+    }
+  },
+  {
+    image: slide9,
+    id: {
+      title: 'PELAYARAN SENJA ESTETIK',
+      subtitle: 'Harmoni Keindahan Cakrawala Senja',
+      desc: 'Saksikan pemandangan matahari terbenam emas yang magis langsung dari atas kapal ferry tercepat di dunia.'
+    },
+    en: {
+      title: 'GOLDEN HOUR SAILING VIBE',
+      subtitle: 'Witness Enchanting Sunset Horizons',
+      desc: 'Enjoy majestic and warm ocean sunset views directly from the top-deck vantage viewpoints.'
+    }
+  },
+  {
+    image: slide10,
+    id: {
+      title: 'AKSES OMBAK DUNIA',
+      subtitle: 'Gerbang Utama Menuju Surga Surfing',
+      desc: 'Rencanakan liburan surfing impian Anda ke ombak legendaris Lances Left, Telescopes, dan Macaronis dengan mudah.'
+    },
+    en: {
+      title: 'EPIC WAVE ACCESS PORTAL',
+      subtitle: 'Gateway to World-Class Surf Breaks',
+      desc: 'Plan dream surf trips to world-famous breaks including Telescopes, Lances Right, and Macaronis.'
+    }
+  },
+  {
+    image: slide11,
+    id: {
+      title: 'NAVIGASI TERMUTAKHIR',
+      subtitle: 'Sistem Keselamatan Laut Kelas Dunia',
+      desc: 'Dilengkapi radar canggih dan kru profesional bersertifikat penuh yang menjamin keamanan maksimum.'
+    },
+    en: {
+      title: 'ADVANCED SEA NAVIGATION',
+      subtitle: 'State-of-the-Art Safekeeping Systems',
+      desc: 'Equipped with highly advanced marine radars and fully certified marine officers on duty.'
+    }
+  },
+  {
+    image: slide12,
+    id: {
+      title: 'KECEPATAN KATAMARAN TINGGI',
+      subtitle: 'Waktu Tempuh Jauh Lebih Singkat',
+      desc: 'Teknologi lambung ganda menstabilkan pergerakan untuk meminimalkan mabuk laut dalam pelayaran cepat Anda.'
+    },
+    en: {
+      title: 'HIGH SPEED CATAMARAN ENGINEERING',
+      subtitle: 'Super Fast Sailing On Double Hulls',
+      desc: 'Optimized dual-hull structure reducing rolling motion to eliminate motion sickness during rapid transits.'
+    }
+  },
+  {
+    image: slide13,
+    id: {
+      title: 'SAMBUTAN HANGAT MENTAWAI',
+      subtitle: 'Petualangan Terbaik Dimulai Di Sini',
+      desc: 'Rasakan keramahan penduduk lokal dan kebudayaan Mentawai yang kaya, eksotis, dan penuh pesona.'
+    },
+    en: {
+      title: 'WARM MENTAWAI WELCOME',
+      subtitle: 'Epic Coastal Adventures Begin Here',
+      desc: 'Experience unparalleled hospitality, white sand shores, and the rich cultural heritage of Mentawai.'
+    }
+  },
+  {
+    image: slide14,
+    id: {
+      title: 'KETANGGUHAN CUACA LAUT',
+      subtitle: 'Andal Di Setiap Operasional Perjalanan',
+      desc: 'Mesin berperforma tinggi yang dirancang tangguh menghadapi gelombang Samudera Hindia di segala musim.'
+    },
+    en: {
+      title: 'MASTERY OVER HEAVY SEAS',
+      subtitle: 'Committed & Resilient Ocean Crossings',
+      desc: 'High-performance propulsion engines designed to cruise robustly through Indian Ocean waves.'
+    }
+  }
+];
 
 interface UserViewProps {
   key?: string;
-  activeTab: 'search' | 'my-tickets';
-  setActiveTab: (tab: 'search' | 'my-tickets') => void;
+  activeTab: 'search' | 'my-tickets' | 'business-plan';
+  setActiveTab: (tab: 'search' | 'my-tickets' | 'business-plan') => void;
+  language: Language;
 }
 
-export function UserView({ activeTab, setActiveTab }: UserViewProps) {
+export function UserView({ activeTab, setActiveTab, language }: UserViewProps) {
+  const t = translations[language];
   const [schedules, setSchedules] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
   const [ships, setShips] = useState<any[]>([]);
@@ -87,9 +306,28 @@ export function UserView({ activeTab, setActiveTab }: UserViewProps) {
   const [bankSettings, setBankSettings] = useState<any>({
     bankName: 'BANK MANDIRI',
     accountNumber: '111-00123-4567-8',
-    accountHolder: 'Mentawai Fast Owner'
+    accountHolder: 'Mentawai Fast Owner',
+    ewalletName: 'DANA / OVO / QRIS',
+    ewalletNumber: '0812-3456-7890',
+    ewalletHolder: 'Mentawai Fast Owner'
   });
   const ticketRef = useRef<HTMLDivElement>(null);
+
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  // Auto-slide every 5 seconds randomly
+  useEffect(() => {
+    const slideInterval = setInterval(() => {
+      setCurrentSlide(prev => {
+        let nextIndex = prev;
+        while (nextIndex === prev && slides.length > 1) {
+          nextIndex = Math.floor(Math.random() * slides.length);
+        }
+        return nextIndex;
+      });
+    }, 5000);
+    return () => clearInterval(slideInterval);
+  }, []);
 
   // Force re-render for timer every second
   useEffect(() => {
@@ -226,19 +464,130 @@ export function UserView({ activeTab, setActiveTab }: UserViewProps) {
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSchedule || !auth.currentUser) return;
+
+    // Check if passengers entered information
+    const invalidPassenger = passengers.some(p => !p.name.trim() || !p.id.trim());
+    if (invalidPassenger) {
+      setStatusModal({
+        show: true,
+        title: language === 'id' ? 'Data Tidak Lengkap' : 'Incomplete Data',
+        message: language === 'id' ? 'Silakan isi Nama Lengkap dan NIK untuk semua penumpang.' : 'Please enter Full Name and ID for all passengers.',
+        type: 'error'
+      });
+      return;
+    }
+
     setBookingLoading(true);
     try {
       const expiresAt = new Date(Date.now() + 2 * 60 * 1000).toISOString();
-      const bookingPromises = passengers.map(passenger => {
+
+      // Fetch all bookings for this schedule, including other users', to prevent seat number collisions
+      const seatSnap = await getDocs(query(
+        collection(db, 'bookings'),
+        where('scheduleId', '==', selectedSchedule.id)
+      ));
+      const activeBookings = seatSnap.docs
+        .map(d => d.data())
+        .filter(b => b.status !== 'cancelled');
+
+      const ship = getShipDetails(selectedSchedule.shipId);
+      const capacity = selectedSchedule.capacity || ship?.capacity || 280;
+      const totalNew = passengers.length;
+
+      // Realtime remaining seat checker
+      if (activeBookings.length + totalNew > capacity) {
+        const remaining = Math.max(0, capacity - activeBookings.length);
+        setStatusModal({
+          show: true,
+          title: language === 'id' ? 'Kursi Penuh / Terbatas' : 'Seats Limit',
+          message: language === 'id' 
+            ? `Maaf, sisa kursi hanya ${remaining} slot, namun Anda mendaftarkan ${totalNew} penumpang.`
+            : `Sorry, only ${remaining} seats left, but you are trying to register ${totalNew} passengers.`,
+          type: 'error'
+        });
+        setBookingLoading(false);
+        return;
+      }
+
+      // Track occupied seat numbers
+      const occupiedSeatNumbers = new Set<number>();
+      activeBookings.forEach(b => {
+        const seatVal = b.seatNumber;
+        if (!seatVal) return;
+        const matches = seatVal.match(/\d+/);
+        if (matches) {
+          occupiedSeatNumbers.add(parseInt(matches[0], 10));
+        }
+      });
+
+      let assignedSeats: number[] = [];
+
+      // 1. Try to find a consecutive block of empty seats for totalNew passengers
+      if (totalNew > 1) {
+        for (let s = 1; s <= capacity - totalNew + 1; s++) {
+          let isConsecutiveEmpty = true;
+          for (let offset = 0; offset < totalNew; offset++) {
+            if (occupiedSeatNumbers.has(s + offset)) {
+              isConsecutiveEmpty = false;
+              break;
+            }
+          }
+          if (isConsecutiveEmpty) {
+            for (let offset = 0; offset < totalNew; offset++) {
+              assignedSeats.push(s + offset);
+            }
+            break;
+          }
+        }
+      }
+
+      // 2. Fallback (or if totalNew === 1): find the first available individual empty seats
+      if (assignedSeats.length === 0) {
+        for (let s = 1; s <= capacity; s++) {
+          if (!occupiedSeatNumbers.has(s)) {
+            assignedSeats.push(s);
+            if (assignedSeats.length === totalNew) {
+              break;
+            }
+          }
+        }
+      }
+
+      // 3. Safety fallback: unique index filling up to capacity ceiling
+      let safetySeat = 1;
+      while (assignedSeats.length < totalNew && safetySeat <= capacity) {
+        if (!assignedSeats.includes(safetySeat) && !occupiedSeatNumbers.has(safetySeat)) {
+          assignedSeats.push(safetySeat);
+        }
+        safetySeat++;
+      }
+
+      // Safeguard check
+      if (assignedSeats.length < totalNew) {
+        setStatusModal({
+          show: true,
+          title: language === 'id' ? 'Gagal Alokasi Kursi' : 'Seat Allocation Failed',
+          message: language === 'id' ? 'Tidak dapat menemukan nomor kursi yang kosong di kapal.' : 'Cannot find available seat numbers on this vessel.',
+          type: 'error'
+        });
+        setBookingLoading(false);
+        return;
+      }
+
+      const bookingPromises = passengers.map((passenger, idx) => {
+        const seatNumStr = `Kursi ${assignedSeats[idx]}`;
+        const emailVal = passenger.email.trim() || `${auth.currentUser?.email || 'user'}@mentawaifast.com`;
+        const phoneVal = passenger.phone.trim() || '-';
+
         return addDoc(collection(db, 'bookings'), {
           scheduleId: selectedSchedule.id,
           userId: auth.currentUser!.uid,
-          passengerName: passenger.name,
-          passengerId: passenger.id,
-          passengerEmail: passenger.email,
-          passengerPhone: passenger.phone,
-          seatNumber: 'AUTO-' + Math.floor(10 + Math.random() * 90),
-          totalPrice: selectedSchedule.price,
+          passengerName: toTitleCase(passenger.name.trim()),
+          passengerId: passenger.id.trim(),
+          passengerEmail: emailVal,
+          passengerPhone: phoneVal,
+          seatNumber: seatNumStr,
+          totalPrice: Number(selectedSchedule.price) || 0,
           status: 'pending',
           expiresAt: expiresAt,
           createdAt: new Date().toISOString()
@@ -360,28 +709,109 @@ export function UserView({ activeTab, setActiveTab }: UserViewProps) {
     <div className="space-y-12 max-w-6xl mx-auto">
       <NotificationCenter isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} notifications={notifications} />
 
-      {/* Hero Welcome */}
-      <div className="bento-card !p-6 relative overflow-hidden group bg-white shadow-xl">
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-white blur-[100px] rounded-full group-hover:bg-navy-100 transition-all duration-700" />
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
-          <div>
-            <span className="badge-status bg-ship-blue/10 text-ship-blue border-ship-blue/20 mb-4 inline-block uppercase animate-pulse">Akses Terverifikasi</span>
-            <h1 className="text-2xl md:text-3xl font-display font-black text-navy-900 tracking-tighter leading-none">
-                HALO, <br/><span className="text-ship-blue">{auth.currentUser?.displayName?.split(' ')[0].toUpperCase()}</span>
-            </h1>
-            <p className="text-navy-400 text-[9px] font-black uppercase tracking-[0.3em] mt-3">Terminal Penumpang Digital Mentawai Fast</p>
-          </div>
-          <button 
-            onClick={() => setIsNotificationsOpen(true)}
-            className="group relative glass-button p-4 rounded-2xl border-navy-100 overflow-hidden bg-white"
-          >
-            <Bell className="w-5 h-5 text-navy-400 group-hover:text-ship-blue group-hover:rotate-12 transition-all" />
-            {notifications.filter(n => !n.read).length > 0 && (
-              <span className="absolute top-5 right-5 w-5 h-5 bg-ship-blue text-white text-[10px] font-black flex items-center justify-center rounded-full ring-4 ring-white animate-pulse">
-                {notifications.filter(n => !n.read).length}
+      {/* Hero Welcome & Scenic Slideshow */}
+      <div className="relative rounded-[2.5rem] overflow-hidden bg-slate-950 text-white min-h-[360px] md:min-h-[420px] flex flex-col justify-between border border-slate-800 shadow-2xl group w-full">
+        {/* Carousel Background Images */}
+        <div className="absolute inset-0 z-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentSlide}
+              initial={{ opacity: 0, scale: 1.05 }}
+              animate={{ opacity: 0.9, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.8, ease: "easeInOut" }}
+              className="absolute inset-0 w-full h-full"
+            >
+              <img 
+                src={slides[currentSlide].image} 
+                alt="Mentawai Fast Slideshow" 
+                className="w-full h-full object-cover object-center"
+                referrerPolicy="no-referrer"
+              />
+            </motion.div>
+          </AnimatePresence>
+          {/* Soft Elegant Dark Gradients on top of image to protect text contrast without heavy dimming */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/45 to-slate-950/10" />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/60 via-slate-950/25 to-transparent/5" />
+        </div>
+
+        {/* Absolute Pagination indicator container at the top center inside the slide */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex flex-wrap justify-center items-center gap-1.5 bg-slate-950/60 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 max-w-[90%] select-none">
+          {slides.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentSlide(idx)}
+              className="group flex items-center cursor-pointer focus:outline-none"
+            >
+              <div className="relative w-3.5 h-1 md:w-5 rounded-full bg-white/20 overflow-hidden transition-all duration-300">
+                <div 
+                  className={cn(
+                    "absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-400 to-sky-300 transition-all",
+                    currentSlide === idx ? "w-full" : "w-0 group-hover:w-1/2"
+                  )}
+                  style={{ transitionDuration: currentSlide === idx ? '5000ms' : '300ms' }}
+                />
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Content Area */}
+        <div className="relative z-10 p-8 md:p-12 flex flex-col justify-between h-full flex-grow gap-8">
+          {/* Top Header Row inside Hero */}
+          <div className="flex justify-between items-start w-full">
+            <div>
+              <span className="badge-status bg-white/10 text-white border-white/20 mb-3 inline-block uppercase text-[9px] tracking-widest backdrop-blur-md animate-pulse">
+                {language === 'id' ? 'Akses Terverifikasi' : 'Verified Access'}
               </span>
-            )}
-          </button>
+              <h1 className="text-3xl md:text-4xl font-display font-black tracking-tighter leading-none text-white drop-shadow-md uppercase text-left">
+                {language === 'id' ? 'HALO,' : 'HELLO,'} <br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-sky-300 font-extrabold">
+                  {auth.currentUser?.displayName?.split(' ')[0].toUpperCase()}
+                </span>
+              </h1>
+              <p className="text-white/60 text-[8px] md:text-[10px] font-mono tracking-[0.3em] font-bold mt-2 uppercase text-left">
+                {language === 'id' ? 'Terminal Penumpang Digital Mentawai Fast' : 'Mentawai Fast Passenger Portal'}
+              </p>
+            </div>
+            <button 
+              onClick={() => setIsNotificationsOpen(true)}
+              className="group relative backdrop-blur-md p-4 rounded-2xl border border-white/10 overflow-hidden bg-white/5 hover:bg-white/10 transition-all active:scale-95"
+            >
+              <Bell className="w-5 h-5 text-white/70 group-hover:text-cyan-400 group-hover:rotate-12 transition-all" />
+              {notifications.filter(n => !n.read).length > 0 && (
+                <span className="absolute top-5 right-5 w-5 h-5 bg-cyan-400 text-slate-950 text-[10px] font-black flex items-center justify-center rounded-full ring-4 ring-slate-950 animate-pulse">
+                  {notifications.filter(n => !n.read).length}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Bottom Caption Slide content */}
+          <div className="mt-auto pt-4 text-left">
+            {/* Slide title and text */}
+            <div className="max-w-3xl space-y-2">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentSlide}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <span className="text-cyan-400 text-[10px] font-black uppercase tracking-[0.25em] block mb-1 text-left drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]">
+                    {slides[currentSlide][language as 'id' | 'en']?.title || slides[currentSlide]['en'].title}
+                  </span>
+                  <h3 className="text-lg md:text-2xl font-display font-black tracking-tight text-white uppercase italic text-left drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]">
+                    {slides[currentSlide][language as 'id' | 'en']?.subtitle || slides[currentSlide]['en'].subtitle}
+                  </h3>
+                  <p className="text-xs md:text-sm text-white/95 max-w-2xl mt-1 leading-relaxed text-left font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]">
+                    {slides[currentSlide][language as 'id' | 'en']?.desc || slides[currentSlide]['en'].desc}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -401,7 +831,9 @@ export function UserView({ activeTab, setActiveTab }: UserViewProps) {
                 const rating = getShipRating(ship.id);
                 const remainingSeats = getRemainingSeats(schedule.id, ship.capacity || 0);
                 const isSoldOut = remainingSeats <= 0;
-                const isDelayed = schedule.status === 'delayed';
+                const isDelayedStatus = schedule.status === 'delayed';
+                const delayEnd = schedule.estimatedActiveTime ? parseISO(schedule.estimatedActiveTime) : null;
+                const isDelayed = isDelayedStatus && delayEnd && isBefore(new Date(), delayEnd);
                 const delayTimer = isDelayed && schedule.estimatedActiveTime ? getDelayRemaining(schedule.estimatedActiveTime) : null;
 
                 return (
@@ -413,7 +845,11 @@ export function UserView({ activeTab, setActiveTab }: UserViewProps) {
                       isSoldOut ? "opacity-75 grayscale-[0.5]" : "hover:border-ship-blue/50",
                       isDelayed && "border-amber-200 bg-amber-50/10"
                     )}
-                    onClick={() => !isSoldOut && setSelectedSchedule(schedule)}
+                    onClick={() => {
+                      if (!isSoldOut) {
+                        setSelectedSchedule(schedule);
+                      }
+                    }}
                   >
                     <div className="flex justify-between items-start mb-10">
                         <div className={cn(
@@ -426,11 +862,11 @@ export function UserView({ activeTab, setActiveTab }: UserViewProps) {
                         </div>
                         <div className="flex flex-col items-end gap-2">
                           {isSoldOut ? (
-                            <span className="badge-status bg-rose-50 text-rose-600 border-rose-200 uppercase font-black text-[8px] animate-pulse">TIKET HABIS</span>
+                            <span className="badge-status bg-rose-50 text-rose-600 border-rose-200 uppercase font-black text-[8px] animate-pulse">{language === 'id' ? 'TIKET HABIS' : 'SOLD OUT'}</span>
                           ) : isDelayed ? (
-                            <span className="badge-status bg-amber-50 text-amber-600 border-amber-200 uppercase font-black text-[8px] animate-pulse">TERTUNDA / DELAY</span>
+                            <span className="badge-status bg-amber-50 text-amber-600 border-amber-200 uppercase font-black text-[8px] animate-pulse">{language === 'id' ? 'TERTUNDA' : 'DELAYED'}</span>
                           ) : (
-                            <span className="badge-status bg-emerald-50 text-emerald-600 border-emerald-200 uppercase font-black text-[8px]">{remainingSeats} Tersisa</span>
+                            <span className="badge-status bg-emerald-50 text-emerald-600 border-emerald-200 uppercase font-black text-[8px]">{remainingSeats} {language === 'id' ? 'Tersisa' : 'Left'}</span>
                           )}
                           {rating && (
                               <div className="flex items-center gap-1.5 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
@@ -449,34 +885,108 @@ export function UserView({ activeTab, setActiveTab }: UserViewProps) {
                             </p>
                         </div>
 
-                        {isDelayed && delayTimer && (
-                          <div className="bg-amber-100/50 p-2 rounded-lg border border-amber-200 text-center">
-                            <p className="text-[7px] font-black uppercase text-amber-600 tracking-widest mb-1">Estimasi Aktif Kembali</p>
-                            <div className="flex justify-center gap-2 text-amber-700 font-mono text-[10px] font-black">
-                                {delayTimer.days > 0 && <span>{delayTimer.days}h </span>}
+                        {isDelayed && schedule.estimatedActiveTime && (
+                          <div className="bg-amber-100/50 p-3 rounded-2xl border border-amber-200 space-y-1.5 text-center">
+                            <p className="text-[8px] font-black uppercase text-amber-600 tracking-widest leading-none">
+                              {language === 'id' ? 'Estimasi Keberangkatan Baru' : 'New Estimated Departure'}
+                            </p>
+                            <p className="text-xs font-black text-amber-900 leading-tight">
+                              {format(parseISO(schedule.estimatedActiveTime), "EEEE, dd MMMM yyyy • HH:mm", { locale: language === 'id' ? id : enUS })}
+                            </p>
+                            {delayTimer && (
+                              <div className="flex justify-center items-center gap-1.5 text-amber-700 font-mono text-[10px] font-black pt-1 border-t border-amber-200/50">
+                                <span className="text-[8px] font-black uppercase text-amber-500 tracking-widest mr-1">
+                                  {language === 'id' ? 'TUNDA SISA:' : 'DELAY LEFT:'}
+                                </span>
+                                {delayTimer.days > 0 && <span>{delayTimer.days}d </span>}
                                 <span>{String(delayTimer.hours).padStart(2, '0')}:</span>
                                 <span>{String(delayTimer.minutes).padStart(2, '0')}:</span>
                                 <span>{String(delayTimer.seconds).padStart(2, '0')}</span>
-                            </div>
+                              </div>
+                            )}
                           </div>
                         )}
 
-                        <div className="flex items-center justify-between text-[10px] font-black text-navy-900 tracking-widest uppercase bg-white p-3 rounded-xl border border-navy-100">
-                            <span>{route.origin.substring(0,3)}</span>
-                            <div className="flex-1 mx-3 h-px border-b border-dashed border-navy-200 relative">
-                                <ChevronRight className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-ship-blue opacity-20" />
+                        {schedule.segments && schedule.segments.length > 1 ? (
+                          <div className="space-y-3 bg-navy-50/20 p-3 rounded-2xl border border-navy-100 select-none">
+                            <span className="text-[7.5px] font-black tracking-widest text-[#001D4A] uppercase block">
+                              📌 {language === 'id' ? 'KAPAL TRANSIT (MULTI-STOP)' : 'TRANSIT SHIP (MULTI-STOP)'}
+                            </span>
+                            <div className="relative flex justify-between items-center px-1">
+                              {/* Background connection line */}
+                              <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 h-0.5 border-t border-dashed border-navy-200" />
+                              
+                              {(() => {
+                                const stopsList: string[] = [];
+                                const firstRoute = getRouteDetails(schedule.segments[0].routeId);
+                                if (firstRoute) stopsList.push(firstRoute.origin);
+                                schedule.segments.forEach((seg: any) => {
+                                  const rDet = getRouteDetails(seg.routeId);
+                                  if (rDet && !stopsList.includes(rDet.destination)) {
+                                    stopsList.push(rDet.destination);
+                                  }
+                                });
+                                return stopsList.map((stopName, sIdx) => (
+                                  <div key={sIdx} className="flex flex-col items-center z-10 bg-white px-1.5 py-1 rounded-lg border border-navy-100 shadow-sm">
+                                    <span className="text-[9px] font-black text-navy-900 tracking-wider">
+                                      {stopName.substring(0, 3).toUpperCase()}
+                                    </span>
+                                    {sIdx === 0 ? (
+                                      <span className="text-[6.5px] font-mono font-bold text-emerald-600">
+                                        {format(parseISO(schedule.departureTime), "HH:mm")}
+                                      </span>
+                                    ) : sIdx === stopsList.length - 1 ? (
+                                      <span className="text-[6.5px] font-mono font-bold text-rose-600">
+                                        {schedule.arrivalTime ? format(parseISO(schedule.arrivalTime), "HH:mm") : '-'}
+                                      </span>
+                                    ) : (
+                                      <span className="text-[6.5px] font-mono font-bold text-amber-600">
+                                        {format(parseISO(schedule.segments[sIdx - 1]?.arrivalTime), "HH:mm")}
+                                      </span>
+                                    )}
+                                  </div>
+                                ));
+                              })()}
                             </div>
-                            <span>{route.destination.substring(0,3)}</span>
-                        </div>
+                            <div className="flex flex-col gap-1 pt-1 border-t border-navy-50">
+                              {schedule.segments.map((seg: any, sIdx: number) => {
+                                const rDet = getRouteDetails(seg.routeId);
+                                return (
+                                  <div key={seg.id || sIdx} className="flex justify-between text-[7.5px] font-mono text-navy-400 font-bold uppercase tracking-wider">
+                                    <span>#{sIdx + 1}: {rDet.origin} → {rDet.destination}</span>
+                                    <span>{format(parseISO(seg.departureTime), "HH:mm")} - {format(parseISO(seg.arrivalTime), "HH:mm")}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between text-[10px] font-black text-navy-900 tracking-widest uppercase bg-white p-3 rounded-xl border border-navy-100 font-display">
+                              <span>{route.origin.substring(0,3)}</span>
+                              <div className="flex-1 mx-3 h-px border-b border-dashed border-navy-200 relative">
+                                  <ChevronRight className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-ship-blue opacity-20" />
+                              </div>
+                              <span>{route.destination.substring(0,3)}</span>
+                          </div>
+                        )}
 
-                        <div className="flex justify-between items-center">
-                            <div className="flex flex-col">
-                                <span className="text-[8px] font-black text-navy-400 uppercase tracking-widest">Keberangkatan</span>
-                                <span className="text-base font-display font-black text-navy-900">{format(parseISO(schedule.departureTime), "HH:mm")}</span>
+                        <div className="flex justify-between items-center pt-2 border-t border-navy-50">
+                            <div className="flex items-center gap-6">
+                                <div className="flex flex-col">
+                                    <span className="text-[8px] font-black text-navy-400 uppercase tracking-widest mb-1 leading-none">{language === 'id' ? 'Berangkat' : 'Departure'}</span>
+                                    <span className="text-base font-mono font-black text-navy-900 leading-none">{format(parseISO(schedule.departureTime), "HH:mm")}</span>
+                                </div>
+                                <div className="h-6 w-px bg-navy-100" />
+                                <div className="flex flex-col">
+                                    <span className="text-[8px] font-black text-navy-400 uppercase tracking-widest mb-1 leading-none">{language === 'id' ? 'Tiba' : 'Arrival'}</span>
+                                    <span className="text-base font-mono font-black text-navy-900 leading-none">
+                                        {schedule.arrivalTime ? format(parseISO(schedule.arrivalTime), "HH:mm") : '-'}
+                                    </span>
+                                </div>
                             </div>
                             <div className="flex flex-col items-end">
-                                <span className="text-[8px] font-black text-navy-400 uppercase tracking-widest">Harga</span>
-                                <span className="text-base font-display font-black text-ship-blue">Rp {schedule.price.toLocaleString()}</span>
+                                <span className="text-[8px] font-black text-navy-400 uppercase tracking-widest mb-1 leading-none">{language === 'id' ? 'Harga' : 'Price'}</span>
+                                <span className="text-base font-display font-black text-ship-blue leading-none">Rp {schedule.price.toLocaleString()}</span>
                             </div>
                         </div>
                     </div>
@@ -491,12 +1001,16 @@ export function UserView({ activeTab, setActiveTab }: UserViewProps) {
               </div>
             )}
           </motion.div>
+        ) : activeTab === 'business-plan' ? (
+          <motion.div key="business-plan" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="w-full">
+            <BusinessPlanReport language={language} />
+          </motion.div>
         ) : (
           <motion.div key="tickets" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {bookings.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((booking) => {
                 const schedule = schedules.find(s => s.id === booking.scheduleId) || {};
-                const route = getRouteDetails(schedule.routeId || '');
+                const route = getRouteDetails(booking.routeId || schedule.routeId || '');
                 const ship = getShipDetails(schedule.shipId || '');
                 const isPaid = booking.status === 'paid';
                 const isCancelled = booking.status === 'cancelled';
@@ -553,15 +1067,15 @@ export function UserView({ activeTab, setActiveTab }: UserViewProps) {
                                 <div className="flex items-center gap-4">
                                     {isPaid ? (
                                         <button onClick={() => setViewingTicket(booking)} className="glass-button px-4 py-2 rounded-xl flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-navy-600 hover:bg-white border border-navy-100">
-                                            <Search className="w-3.5 h-3.5" /> Tiket
+                                            <Search className="w-3.5 h-3.5" /> {language === 'id' ? 'Tiket' : 'Ticket'}
                                         </button>
                                     ) : isCancelled ? (
                                         <div className="flex items-center gap-2 px-4 py-2 bg-rose-50 border border-rose-100 rounded-xl text-[8px] font-black uppercase text-rose-500 tracking-widest">
-                                            <X className="w-3.5 h-3.5" /> Kedaluwarsa
+                                            <X className="w-3.5 h-3.5" /> {language === 'id' ? 'Kedaluwarsa' : 'Expired'}
                                         </div>
                                     ) : (
                                         <button onClick={() => setPayingBooking(booking)} className="bg-ship-blue hover:bg-navy-900 text-white px-5 py-2 rounded-xl flex items-center gap-2 text-[9px] font-black uppercase tracking-widest shadow-xl transition-all hover:scale-105">
-                                            <CreditCard className="w-3.5 h-3.5" /> Bayar
+                                            <CreditCard className="w-3.5 h-3.5" /> {language === 'id' ? 'Bayar' : 'Pay'}
                                         </button>
                                     )}
                                 </div>
@@ -622,6 +1136,8 @@ export function UserView({ activeTab, setActiveTab }: UserViewProps) {
                                 </div>
                             </div>
 
+
+
                             <div className="space-y-4">
                                 {passengers.map((p, i) => (
                                     <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} key={i} className="bento-card group border-navy-100 bg-white shadow-md !p-5">
@@ -665,7 +1181,7 @@ export function UserView({ activeTab, setActiveTab }: UserViewProps) {
                                         <span className="text-ship-blue font-black text-[10px] tracking-widest">GRATIS</span>
                                     </div>
                                     <div className="pt-4">
-                                        <p className="text-[9px] font-black text-navy-300 uppercase tracking-[0.3em] mb-2 text-center text-center">Total</p>
+                                        <p className="text-[9px] font-black text-navy-300 uppercase tracking-[0.3em] mb-2 text-center">Total</p>
                                         <p className="text-2xl font-display font-black text-navy-900 text-center tracking-tighter">Rp {(selectedSchedule.price * passengerCount).toLocaleString()}</p>
                                     </div>
                                     <button disabled={bookingLoading} className="w-full bg-ship-blue text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-[0.3em] transition-all hover:bg-navy-900 hover:scale-105 active:scale-95 shadow-xl mt-4 disabled:opacity-50">
@@ -702,16 +1218,16 @@ export function UserView({ activeTab, setActiveTab }: UserViewProps) {
                     <div className="bg-ship-blue p-12 text-white relative overflow-hidden">
                         <div className="absolute top-0 right-0 -mr-8 -mt-8 opacity-10"><Anchor className="w-64 h-64" /></div>
                         <div className="relative z-10">
-                            <h2 className="text-5xl font-display font-black italic tracking-tighter uppercase leading-none">BOARDING PASS</h2>
-                            <p className="text-[10px] font-black uppercase tracking-[0.4em] mt-3 opacity-60 italic">MENTAWAI FAST • PRIORITAS GLOBAL</p>
+                            <h2 className="text-5xl font-display font-black italic tracking-tighter uppercase leading-none">{language === 'id' ? 'BOARDING PASS' : 'BOARDING PASS'}</h2>
+                            <p className="text-[10px] font-black uppercase tracking-[0.4em] mt-3 opacity-60 italic">{language === 'id' ? 'MENTAWAI FAST • PRIORITAS GLOBAL' : 'MENTAWAI FAST • GLOBAL PRIORITY'}</p>
                         </div>
                     </div>
 
                     <div className="p-12 space-y-12 bg-white">
                         <div className="flex justify-between items-center bg-white p-8 rounded-[2rem] border border-navy-100 border-dashed border-2">
                              <div className="text-center">
-                                <h3 className="text-4xl font-display font-black text-navy-900 italic leading-none">{getRouteDetails(schedules.find(s => s.id === viewingTicket.scheduleId)?.routeId).origin.substring(0,3)}</h3>
-                                <span className="text-[9px] font-black text-navy-400 uppercase tracking-widest italic mt-2 inline-block leading-none text-left">{getRouteDetails(schedules.find(s => s.id === viewingTicket.scheduleId)?.routeId).origin}</span>
+                                <h3 className="text-4xl font-display font-black text-navy-900 italic leading-none">{getRouteDetails(viewingTicket.routeId || schedules.find(s => s.id === viewingTicket.scheduleId)?.routeId).origin.substring(0,3)}</h3>
+                                <span className="text-[9px] font-black text-navy-400 uppercase tracking-widest italic mt-2 inline-block leading-none text-left">{getRouteDetails(viewingTicket.routeId || schedules.find(s => s.id === viewingTicket.scheduleId)?.routeId).origin}</span>
                              </div>
                              <div className="flex-1 flex flex-col items-center px-6">
                                 <div className="w-full h-px border-b border-navy-200 relative">
@@ -719,45 +1235,63 @@ export function UserView({ activeTab, setActiveTab }: UserViewProps) {
                                 </div>
                              </div>
                              <div className="text-center">
-                                <h3 className="text-4xl font-display font-black text-navy-900 italic leading-none">{getRouteDetails(schedules.find(s => s.id === viewingTicket.scheduleId)?.routeId).destination.substring(0,3)}</h3>
-                                <span className="text-[9px] font-black text-navy-400 uppercase tracking-widest italic mt-2 inline-block leading-none text-left">{getRouteDetails(schedules.find(s => s.id === viewingTicket.scheduleId)?.routeId).destination}</span>
+                                <h3 className="text-4xl font-display font-black text-navy-900 italic leading-none">{getRouteDetails(viewingTicket.routeId || schedules.find(s => s.id === viewingTicket.scheduleId)?.routeId).destination.substring(0,3)}</h3>
+                                <span className="text-[9px] font-black text-navy-400 uppercase tracking-widest italic mt-2 inline-block leading-none text-left">{getRouteDetails(viewingTicket.routeId || schedules.find(s => s.id === viewingTicket.scheduleId)?.routeId).destination}</span>
                              </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-y-12 gap-x-12">
                             <div className="space-y-2">
-                                <label className="text-[9px] font-black text-navy-400 uppercase tracking-widest leading-none">Identitas Manifest</label>
+                                <label className="text-[9px] font-black text-navy-400 uppercase tracking-widest leading-none">{language === 'id' ? 'Identitas Manifest' : 'Manifest Identity'}</label>
                                 <p className="text-lg font-black text-navy-900 tracking-tight leading-tight text-left">{toTitleCase(viewingTicket.passengerName)}</p>
                             </div>
                             <div className="space-y-2 text-right">
-                                <label className="text-[9px] font-black text-navy-400 uppercase tracking-widest leading-none">Nama Kapal</label>
+                                <label className="text-[9px] font-black text-navy-400 uppercase tracking-widest leading-none">{language === 'id' ? 'Nama Kapal' : 'Ship Name'}</label>
                                 <p className="text-lg font-black text-ship-blue tracking-tight leading-tight uppercase">{getShipDetails(schedules.find(s => s.id === viewingTicket.scheduleId)?.shipId).name}</p>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[9px] font-black text-navy-400 uppercase tracking-widest leading-none">Waktu Berangkat</label>
+                                <label className="text-[9px] font-black text-navy-400 uppercase tracking-widest leading-none">{language === 'id' ? 'Waktu Berangkat' : 'Departure Time'}</label>
                                 <p className="text-md font-black text-navy-900 tracking-tight leading-tight uppercase">
-                                    {format(new Date(schedules.find(s => s.id === viewingTicket.scheduleId)?.departureTime), 'EEEE, dd MMM yyyy • HH:mm', { locale: id })}
+                                    {format(new Date(viewingTicket.departureTime || schedules.find(s => s.id === viewingTicket.scheduleId)?.departureTime), 'EEEE, dd MMM yyyy • HH:mm', { locale: language === 'id' ? id : enUS })}
                                 </p>
                             </div>
                             <div className="space-y-2 text-right">
-                                <label className="text-[9px] font-black text-navy-400 uppercase tracking-widest leading-none">Status Operasional</label>
-                                <p className={cn(
-                                  "text-[10px] font-black uppercase tracking-widest",
-                                  schedules.find(s => s.id === viewingTicket.scheduleId)?.status === 'delayed' ? "text-amber-500" : "text-emerald-500"
-                                )}>
-                                    {schedules.find(s => s.id === viewingTicket.scheduleId)?.status === 'delayed' ? 'DELAY / TERTUNDA' : 'AKTIF / NORMAL'}
+                                <label className="text-[9px] font-black text-navy-400 uppercase tracking-widest leading-none">{language === 'id' ? 'Waktu Tiba' : 'Arrival Time'}</label>
+                                <p className="text-md font-black text-navy-900 tracking-tight leading-tight uppercase">
+                                    {(viewingTicket.arrivalTime || schedules.find(s => s.id === viewingTicket.scheduleId)?.arrivalTime) ? format(new Date(viewingTicket.arrivalTime || schedules.find(s => s.id === viewingTicket.scheduleId)?.arrivalTime), 'EEEE, dd MMM yyyy • HH:mm', { locale: language === 'id' ? id : enUS }) : '-'}
                                 </p>
                             </div>
-                            {schedules.find(s => s.id === viewingTicket.scheduleId)?.status === 'delayed' && schedules.find(s => s.id === viewingTicket.scheduleId)?.estimatedActiveTime && (
-                              <div className="col-span-2 p-4 bg-amber-50 rounded-2xl border border-amber-100 text-center">
-                                  <p className="text-[8px] font-black text-amber-600 uppercase tracking-widest mb-1">Estimasi Baru Beroperasi</p>
-                                  <p className="text-sm font-black text-amber-700">
-                                      {format(new Date(schedules.find(s => s.id === viewingTicket.scheduleId)?.estimatedActiveTime), 'dd MMM yyyy • HH:mm')}
-                                  </p>
-                              </div>
-                            )}
-                            <div className="col-span-2 py-8 bg-navy-50/50 rounded-[2.5rem] border border-navy-100/50 flex flex-col items-center justify-center">
-                                <label className="text-[9px] font-black text-navy-400 uppercase tracking-widest leading-none mb-3">Nomor Kursi</label>
+                            <div className="space-y-2 col-span-2">
+                                <label className="text-[9px] font-black text-navy-400 uppercase tracking-widest leading-none">{language === 'id' ? 'Status Operasional' : 'Operational Status'}</label>
+                                <p className={cn(
+                                  "text-[10px] font-black uppercase tracking-widest",
+                                  (() => {
+                                    const sched = schedules.find(s => s.id === viewingTicket.scheduleId);
+                                    const isDelayActive = sched?.status === 'delayed' && sched.estimatedActiveTime && isBefore(new Date(), parseISO(sched.estimatedActiveTime));
+                                    return isDelayActive;
+                                  })() ? "text-amber-500" : "text-emerald-500"
+                                )}>
+                                    {(() => {
+                                      const sched = schedules.find(s => s.id === viewingTicket.scheduleId);
+                                      const isDelayActive = sched?.status === 'delayed' && sched.estimatedActiveTime && isBefore(new Date(), parseISO(sched.estimatedActiveTime));
+                                      return isDelayActive ? (language === 'id' ? 'DELAY / TERTUNDA' : 'DELAYED') : (language === 'id' ? 'AKTIF / NORMAL' : 'ACTIVE / NORMAL');
+                                    })()}
+                                </p>
+                            </div>
+                            {(() => {
+                              const sched = schedules.find(s => s.id === viewingTicket.scheduleId);
+                              const isDelayActive = sched?.status === 'delayed' && sched.estimatedActiveTime && isBefore(new Date(), parseISO(sched.estimatedActiveTime));
+                              return isDelayActive && sched?.estimatedActiveTime && (
+                                <div className="col-span-2 p-4 bg-amber-50 rounded-2xl border border-amber-100 text-center">
+                                    <p className="text-[8px] font-black text-amber-600 uppercase tracking-widest mb-1">Estimasi Baru Beroperasi</p>
+                                    <p className="text-sm font-black text-amber-700">
+                                        {format(new Date(sched.estimatedActiveTime), 'EEEE, dd MMMM yyyy • HH:mm', { locale: language === 'id' ? id : enUS })}
+                                    </p>
+                                </div>
+                              );
+                            })()}
+                             <div className="col-span-2 py-8 bg-navy-50/50 rounded-[2.5rem] border border-navy-100/50 flex flex-col items-center justify-center">
+                                <label className="text-[9px] font-black text-navy-400 uppercase tracking-widest leading-none mb-3">{language === 'id' ? 'Nomor Kursi' : 'Seat Number'}</label>
                                 <p className="text-5xl font-display font-black text-ship-blue tracking-tighter leading-none uppercase italic">{viewingTicket.seatNumber}</p>
                             </div>
                         </div>
@@ -768,7 +1302,7 @@ export function UserView({ activeTab, setActiveTab }: UserViewProps) {
                                     <QRCodeCanvas value={viewingTicket.id} size={80} level="H" />
                                 </div>
                                 <div className="space-y-2">
-                                    <div className="badge-status bg-emerald-50 text-emerald-600 border-emerald-200 uppercase text-[8px] italic">Terverifikasi & Aktif</div>
+                                    <div className="badge-status bg-emerald-50 text-emerald-600 border-emerald-200 uppercase text-[8px] italic">{language === 'id' ? 'Terverifikasi & Aktif' : 'Verified & Active'}</div>
                                     <p className="text-[9px] font-black text-navy-300 uppercase tracking-widest italic font-mono uppercase">TOKEN: {viewingTicket.id.substring(0,12).toUpperCase()}</p>
                                 </div>
                             </div>
@@ -792,12 +1326,12 @@ export function UserView({ activeTab, setActiveTab }: UserViewProps) {
                 <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bento-card max-w-lg w-full !p-0 overflow-hidden border-navy-100 shadow-5xl bg-white">
                     <div className="bg-ship-blue p-12 text-white relative flex justify-between items-start">
                         <div>
-                            <h2 className="text-3xl font-display font-black tracking-tighter uppercase leading-none mb-3 text-white">AGEN PEMBAYARAN</h2>
-                            <p className="text-[10px] font-black uppercase text-white/70 tracking-[0.3em] font-display">TOTAL TAGIHAN: Rp {payingBooking.totalPrice.toLocaleString()}</p>
+                            <h2 className="text-3xl font-display font-black tracking-tighter uppercase leading-none mb-3 text-white">{language === 'id' ? 'AGEN PEMBAYARAN' : 'PAYMENT AGENT'}</h2>
+                            <p className="text-[10px] font-black uppercase text-white/70 tracking-[0.3em] font-display">{language === 'id' ? 'TOTAL TAGIHAN' : 'TOTAL BILL'}: Rp {payingBooking.totalPrice.toLocaleString()}</p>
                         </div>
                         {payingBooking.expiresAt && (
                             <div className="flex flex-col items-end gap-2 px-6 py-4 bg-navy-900/50 backdrop-blur-md rounded-3xl border border-white/10 shadow-2xl">
-                                <span className="text-[8px] font-black uppercase tracking-widest text-rose-300 italic leading-none">Batas Waktu</span>
+                                <span className="text-[8px] font-black uppercase tracking-widest text-rose-300 italic leading-none">{language === 'id' ? 'Batas Waktu' : 'Expires In'}</span>
                                 <div className="flex items-center gap-3">
                                     <Clock className="w-5 h-5 text-rose-400 animate-pulse" />
                                     <span className="text-3xl font-display font-black text-rose-400 italic tracking-tighter leading-none">
@@ -811,18 +1345,37 @@ export function UserView({ activeTab, setActiveTab }: UserViewProps) {
                     
                     <div className="p-12 space-y-10">
                         <div className="bg-white p-8 rounded-[2rem] border border-navy-100 space-y-4 shadow-inner">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <p className="text-[9px] font-black text-navy-400 uppercase tracking-widest mb-1 leading-none">Bank Tujuan</p>
-                                    <p className="font-black text-navy-900 text-lg tracking-tight leading-none uppercase">{bankSettings.bankName}</p>
-                                </div>
-                                <div className="w-12 h-12 bg-white border border-navy-100 flex items-center justify-center rounded-xl p-2 font-black text-ship-blue text-xs shadow-sm">{bankSettings.bankName[0]}</div>
-                            </div>
-                            <div>
-                                <p className="text-[9px] font-black text-navy-400 uppercase tracking-widest mb-1 italic leading-none">Nomor Rekening</p>
-                                <p className="text-3xl font-display font-black text-ship-blue italic tracking-widest">{bankSettings.accountNumber}</p>
-                                <p className="text-[10px] font-black text-navy-400 uppercase tracking-widest mt-2 italic shadow-sm">A/N {bankSettings.accountHolder}</p>
-                            </div>
+                            {paymentMethod === 'bank' ? (
+                                <>
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <p className="text-[9px] font-black text-navy-400 uppercase tracking-widest mb-1 leading-none">{language === 'id' ? 'Bank Tujuan' : 'Target Bank'}</p>
+                                            <p className="font-black text-navy-900 text-lg tracking-tight leading-none uppercase">{bankSettings.bankName}</p>
+                                        </div>
+                                        <div className="w-12 h-12 bg-white border border-navy-100 flex items-center justify-center rounded-xl p-2 font-black text-ship-blue text-xs shadow-sm">{bankSettings.bankName ? bankSettings.bankName[0] : 'B'}</div>
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-black text-navy-400 uppercase tracking-widest mb-1 italic leading-none">{language === 'id' ? 'Nomor Rekening' : 'Account Number'}</p>
+                                        <p className="text-3xl font-display font-black text-ship-blue italic tracking-widest">{bankSettings.accountNumber}</p>
+                                        <p className="text-[10px] font-black text-navy-400 uppercase tracking-widest mt-2 italic shadow-sm">A/N {bankSettings.accountHolder}</p>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <p className="text-[9px] font-black text-navy-400 uppercase tracking-widest mb-1 leading-none">{language === 'id' ? 'E-Wallet / Kode QRIS' : 'E-Wallet / QRIS Destination'}</p>
+                                            <p className="font-black text-navy-900 text-lg tracking-tight leading-none uppercase">{bankSettings.ewalletName || 'GOPAY / OVO / QRIS'}</p>
+                                        </div>
+                                        <div className="w-12 h-12 bg-white border border-navy-100 flex items-center justify-center rounded-xl p-2 font-black text-ship-blue text-xs shadow-sm">QR</div>
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-black text-navy-400 uppercase tracking-widest mb-1 italic leading-none">{language === 'id' ? 'Nomor Telepon / Kode' : 'Phone Number / Code'}</p>
+                                        <p className="text-3xl font-display font-black text-ship-blue italic tracking-widest">{bankSettings.ewalletNumber || '0812-3456-7890'}</p>
+                                        <p className="text-[10px] font-black text-navy-400 uppercase tracking-widest mt-2 italic shadow-sm">A/N {bankSettings.ewalletHolder || 'Mentawai Fast Owner'}</p>
+                                    </div>
+                                </>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-1 gap-4">

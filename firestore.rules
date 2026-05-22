@@ -30,7 +30,7 @@ service cloud.firestore {
     }
 
     function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_-]+$');
+      return id is string && id.size() > 0 && id.size() <= 128;
     }
 
     function incoming() {
@@ -60,23 +60,28 @@ service cloud.firestore {
 
     function isValidRoute(data) {
       return data.keys().hasAll(['origin', 'destination', 'basePrice']) &&
-             data.keys().size() == 3 &&
+             (data.keys().size() == 3 || (data.keys().size() == 5 && 'isTransit' in data.keys() && 'legs' in data.keys())) &&
              data.origin is string && data.origin.size() <= 100 &&
              data.destination is string && data.destination.size() <= 100 &&
-             data.basePrice is int && data.basePrice >= 0;
+             (data.basePrice is int || data.basePrice is float) && data.basePrice >= 0 &&
+             (!('isTransit' in data.keys()) || data.isTransit is bool) &&
+             (!('legs' in data.keys()) || data.legs is list);
     }
 
     function isValidSchedule(data) {
       return data.keys().hasAll(['shipId', 'routeId', 'departureTime', 'arrivalTime', 'status', 'price']) &&
-             (data.keys().size() == 6 || (data.keys().size() == 7 && 'bookedSeats' in data.keys()) || (data.keys().size() == 8 && 'estimatedActiveTime' in data.keys())) &&
+             data.keys().size() <= 12 &&
              isValidId(data.shipId) &&
              isValidId(data.routeId) &&
              data.departureTime is string &&
              data.arrivalTime is string &&
              data.status in ['scheduled', 'cancelled', 'delayed', 'active'] &&
-             data.price is int && data.price >= 0 &&
+             (data.price is int || data.price is float) && data.price >= 0 &&
              (!('bookedSeats' in data.keys()) || (data.bookedSeats is int && data.bookedSeats >= 0)) &&
-             (!('estimatedActiveTime' in data.keys()) || data.estimatedActiveTime is string);
+             (!('estimatedActiveTime' in data.keys()) || data.estimatedActiveTime is string) &&
+             (!('delayStartedAt' in data.keys()) || data.delayStartedAt is string) &&
+             (!('delayStartPercent' in data.keys()) || (data.delayStartPercent is int || data.delayStartPercent is float)) &&
+             (!('segments' in data.keys()) || data.segments is list);
     }
 
     function isValidBooking(data) {
@@ -85,16 +90,21 @@ service cloud.firestore {
              isValidId(data.userId) &&
              data.passengerName is string && data.passengerName.size() <= 100 &&
              data.passengerId is string && data.passengerId.size() <= 100 &&
-             (!('passengerEmail' in data.keys()) || (data.passengerEmail is string && (data.passengerEmail == "" || data.passengerEmail.matches('^[^@]+@[^@]+\\.[^@]+$')))) &&
+             (!('passengerEmail' in data.keys()) || (data.passengerEmail is string && data.passengerEmail.size() <= 150)) &&
+             (!('passengerPhone' in data.keys()) || (data.passengerPhone is string && data.passengerPhone.size() <= 50)) &&
              data.seatNumber is string && data.seatNumber.size() <= 20 &&
-             (data.totalPrice is int || data.totalPrice is number) &&
+             (data.totalPrice is int || data.totalPrice is float) &&
              data.status in ['pending', 'paid', 'cancelled'] &&
              data.createdAt is string &&
-             (!('paymentMethod' in data.keys()) || (data.paymentMethod in ['bank', 'ewallet', 'ovo', 'gopay'])) &&
+             (!('paymentMethod' in data.keys()) || (data.paymentMethod in ['bank', 'ewallet', 'cash', 'ovo', 'gopay'])) &&
              (!('paymentId' in data.keys()) || (data.paymentId is string && data.paymentId.size() <= 100)) &&
              (!('confirmedAt' in data.keys()) || data.confirmedAt is string) &&
              (!('expiresAt' in data.keys()) || data.expiresAt is string) &&
-             (!('passengerCount' in data.keys()) || (data.passengerCount is int && data.passengerCount > 0));
+             (!('passengerCount' in data.keys()) || (data.passengerCount is int && data.passengerCount > 0)) &&
+             (!('routeId' in data.keys()) || data.routeId is string) &&
+             (!('segmentId' in data.keys()) || data.segmentId is string) &&
+             (!('departureTime' in data.keys()) || data.departureTime is string) &&
+             (!('arrivalTime' in data.keys()) || data.arrivalTime is string);
     }
 
     function isValidPaymentSettings(data) {
@@ -102,6 +112,9 @@ service cloud.firestore {
              data.bankName is string && data.bankName.size() <= 100 &&
              data.accountNumber is string && data.accountNumber.size() <= 50 &&
              data.accountHolder is string && data.accountHolder.size() <= 100 &&
+             (!('ewalletName' in data.keys()) || (data.ewalletName is string && data.ewalletName.size() <= 100)) &&
+             (!('ewalletNumber' in data.keys()) || (data.ewalletNumber is string && data.ewalletNumber.size() <= 50)) &&
+             (!('ewalletHolder' in data.keys()) || (data.ewalletHolder is string && data.ewalletHolder.size() <= 100)) &&
              (!('updatedAt' in data.keys()) || data.updatedAt is string);
     }
 
@@ -156,10 +169,12 @@ service cloud.firestore {
     }
 
     match /bookings/{bookingId} {
-      allow read: if (isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()));
-      allow create: if isSignedIn() && request.auth.token.email_verified == true && isValidBooking(incoming()) && incoming().userId == request.auth.uid && incoming().status == 'pending';
+      allow get: if (isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()));
+      allow list: if (isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.scheduleId != null || isAdmin()));
+      allow create: if (isSignedIn() && isValidBooking(incoming()) && incoming().userId == request.auth.uid && incoming().status == 'pending') ||
+                    (isAdmin() && isValidBooking(incoming()) && (incoming().userId == 'loket_petugas_admin' || incoming().userId == request.auth.uid));
       allow update: if (isAdmin() && isValidBooking(incoming())) || 
-                     (isSignedIn() && request.auth.token.email_verified == true && resource.data.userId == request.auth.uid && isValidBooking(incoming()) && incoming().userId == request.auth.uid && (
+                     (isSignedIn() && resource.data.userId == request.auth.uid && isValidBooking(incoming()) && incoming().userId == request.auth.uid && (
                        (incoming().diff(existing()).affectedKeys().hasOnly(['status']) && incoming().status == 'cancelled' && existing().status == 'pending') ||
                        (incoming().diff(existing()).affectedKeys().hasOnly(['status', 'paymentId', 'confirmedAt', 'paymentMethod']) && incoming().status == 'paid' && existing().status == 'pending')
                      ));

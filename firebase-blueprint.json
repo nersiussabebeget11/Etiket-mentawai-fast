@@ -31,8 +31,13 @@
         "routeId": { "type": "string" },
         "departureTime": { "type": "string", "format": "date-time" },
         "arrivalTime": { "type": "string", "format": "date-time" },
-        "status": { "type": "string", "enum": ["scheduled", "cancelled", "delayed"] },
-        "price": { "type": "integer" }
+        "status": { "type": "string", "enum": ["scheduled", "cancelled", "delayed", "active"] },
+        "price": { "type": "integer" },
+        "bookedSeats": { "type": "integer" },
+        "estimatedActiveTime": { "type": "string", "format": "date-time" },
+        "delayStartedAt": { "type": "string", "format": "date-time" },
+        "delayStartPercent": { "type": "integer" },
+        "segments": { "type": "array" }
       },
       "required": ["shipId", "routeId", "departureTime", "arrivalTime", "status", "price"]
     },

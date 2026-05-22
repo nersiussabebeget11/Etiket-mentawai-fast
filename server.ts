@@ -1,10 +1,10 @@
 import express from "express";
 import path from "path";
-import { createServer as createViteServer } from "vite";
 import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Robust way to get __dirname in both ESM and bundled CJS
+const _filename = typeof __filename !== 'undefined' ? __filename : fileURLToPath(import.meta.url);
+const _dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(_filename);
 
 async function startServer() {
   const app = express();
@@ -143,6 +143,7 @@ async function startServer() {
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
@@ -159,9 +160,9 @@ async function startServer() {
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
-
-  return app;
 }
 
-const appPromise = startServer();
-export default appPromise;
+startServer().catch(err => {
+  console.error("Critical failure during server startup:", err);
+  process.exit(1);
+});
